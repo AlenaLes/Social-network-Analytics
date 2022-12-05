@@ -1,0 +1,23 @@
+SELECT 
+  toString(date) as date,
+  toString(start_date) as start_date,
+  COUNT(user_id) as active_users
+FROM
+
+-- нашли первый вход пользователей + взяли только ads
+(SELECT
+  user_id,
+  min(toDate(time)) as start_date
+FROM simulator_20221020.feed_actions
+WHERE source = 'ads'
+GROUP BY user_id) t1
+
+JOIN
+
+-- нашли уникальные значения пользования приложением
+(SELECT DISTINCT user_id, toDate(time) as date
+FROM simulator_20221020.feed_actions) t2
+
+
+USING user_id
+GROUP BY date, start_date
