@@ -1,0 +1,25 @@
+SELECT 
+  date,
+  user_id,
+  source,
+  os, 
+  action
+FROM
+-- нашли пользователей, кто стартовал 30 дней назад, source = ads
+(SELECT
+  user_id,
+  source,
+  os,
+  action
+FROM simulator_20221020.feed_actions
+--WHERE source = 'ads'
+GROUP BY user_id, source, os, action
+HAVING min(toDate(time)) = today() - 30) t1
+
+JOIN
+-- нашли уникальные значения пользования приложением
+(SELECT DISTINCT user_id, toDate(time) as date
+FROM simulator_20221020.feed_actions) t2
+
+USING user_id
+GROUP BY date, source, user_id, os, action
