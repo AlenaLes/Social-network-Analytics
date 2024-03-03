@@ -1,34 +1,32 @@
+(
 SELECT
     this_week,
     previous_week,
     -uniq(user_id) as num_users, 
     status
 FROM
-
-    (SELECT 
+    (
+    SELECT 
       user_id,
       groupUniqArray(toMonday(toDate(time))) as weeks_visited,
       addWeeks(arrayJoin(weeks_visited), +1) as this_week,
       if(has(weeks_visited, this_week) = 1, 'Оставшиеся пользователи', 'Ушедшие пользователи') as status,
       addWeeks (this_week, -1) as previous_week
     FROM simulator_20221020.feed_actions 
-    GROUP BY user_id)
-
+    GROUP BY 1
+    )
 WHERE status = 'Ушедшие пользователи'
-
-GROUP BY this_week, previous_week, status
-
+GROUP BY 1, 2, 4
 HAVING this_week != addWeeks(toMonday(today()), +1)
-
+)
 union all
-
-SELECT 
+(
+  SELECT 
     this_week,
     previous_week,
     toInt64(uniq(user_id)) as num_users,
     status
-FROM 
-
+  FROM 
     (SELECT 
       user_id,
       groupUniqArray(toMonday(toDate(time))) as weeks_visited,
@@ -36,6 +34,6 @@ FROM
       if(has(weeks_visited, addWeeks(this_week, -1)) = 1, 'Оставшиеся пользователи', 'Новые пользователи') as status,
       addWeeks (this_week, -1) as previous_week
     FROM simulator_20221020.feed_actions 
-    GROUP BY user_id)
-
-GROUP BY this_week, previous_week, status
+    GROUP BY 1)
+  GROUP BY 1, 2, 4
+  )
